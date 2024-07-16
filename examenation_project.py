@@ -5,6 +5,7 @@
 
 # Библиотека __future__ нужна для обратной совместимости между python2 и python3
 from __future__ import print_function
+import math
 # Подключаем библиотеку time
 import time
 # Из библиотеки dronekit подключаем connect для связи с дроном
@@ -84,8 +85,8 @@ lat_h = 55.7514207
 long_h = 37.6265806
 
 # Координат широты и долготы каждой точки
-latitude_coordinats = (55.7504425, 55.7519520, 55.7504757, 55.7514147, 55.7514116, 55.7504425)
-longitude_coordinats = (37.6271600, 37.6282918, 37.6294076, 37.6268381, 37.6297778, 37.6271600)
+latitude_changes = (0.001, 0.002, -0.002, 0.001, -0.002, -0.002, 0.001, -0.002, 0.002, 0.001)
+longitude_changes = (-0.002, 0, -0.001, -0.002, 0.001, -0.002, 0.002, 0.001, 0, 0.002)
 
 # Список высот полёта до каждой точки
 altitudes = (15, 20, 15, 20, 15, 20)
@@ -93,15 +94,16 @@ altitudes = (15, 20, 15, 20, 15, 20)
 # Список названий точек
 points = ['первой', 'второй', 'третьей', 'четвёртой', 'пятой', 'первой']
 
+a = math.pi/1000 + math.pi/15
 # Дрон облетает месность по траектории звезды
 # Через цикл меняем координаты и высоту для каждой точки
-for i in range(6):
+for i in range(10):
 
-    print(f"Квадрокоптер летит к {points[i]} точке полёта в течение 45 секунд на высоте {altitudes[i]} м.")
-    vehicle.simple_goto(LocationGlobalRelative(latitude_coordinats[i], longitude_coordinats[i], altitudes[i]))
+    print(f"Квадрокоптер летит к points[i] точке полёта в течение 45 секунд на высоте altitudes[i] м.")
+    vehicle.simple_goto(LocationGlobalRelative(round(lat_h + latitude_changes[i] * math.sin(a), 6), round(long_h + longitude_changes[i] * math.cos(a), 6), 15))
 
     # приостанавливаем программу и смотрим движение дрона на карте
-    time.sleep(45)
+    time.sleep(35)
 
 # Отправляем дрон к точке взлёта
 print("Квадрокоптер летит к точке взлёта в течение 30 секунд.")
