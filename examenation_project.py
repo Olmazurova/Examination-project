@@ -77,8 +77,8 @@ def arm_and_takeoff(aTargetAltitude):
 # Запуск дрона и набор высоты
 arm_and_takeoff(10)
 
-print("Set default/target airspeed to 3")
-vehicle.airspeed = 6
+print("Set default/target airspeed to 10")
+vehicle.airspeed = 10
 
 # Координаты точки взлёта и посадки
 lat_h = 55.7514207
@@ -94,16 +94,25 @@ altitudes = (15, 20, 15, 20, 15, 20)
 # Список названий точек
 points = ['первой', 'второй', 'третьей', 'четвёртой', 'пятой', 'первой']
 
-a = math.pi/1000 + math.pi/15
+# угол поворота дрона начинаем с правого горизонтального луча
+angle = math.pi / 2
+radius = 0.002
+
 # Дрон облетает месность по траектории звезды
 # Через цикл меняем координаты и высоту для каждой точки
 for i in range(10):
-
-    print(f"Квадрокоптер летит к points[i] точке полёта в течение 45 секунд на высоте altitudes[i] м.")
-    vehicle.simple_goto(LocationGlobalRelative(round(lat_h + latitude_changes[i] * math.sin(a), 6), round(long_h + longitude_changes[i] * math.cos(a), 6), 15))
+    if i % 2 == 0:
+        print(f"Полёт дрона к points[i] точке полёта в течение 45 секунд на высоте altitudes[i] м.")
+        vehicle.simple_goto(LocationGlobalRelative(lat_h + round(radius * 0.38 * math.cos(angle), 6),
+                                                   long_h - round(radius * 0.38 * math.sin(angle), 6), 15))
+    else:
+        print(f"Полёт дрона к points[i] точке полёта в течение 45 секунд на высоте altitudes[i] м.")
+        vehicle.simple_goto(LocationGlobalRelative(lat_h + round(radius * math.cos(angle), 6),
+                                                   long_h - round(radius * math.sin(angle), 6), 15))
+    angle -= math.pi / 5
 
     # приостанавливаем программу и смотрим движение дрона на карте
-    time.sleep(35)
+    time.sleep(30)
 
 # Отправляем дрон к точке взлёта
 print("Квадрокоптер летит к точке взлёта в течение 30 секунд.")
@@ -111,7 +120,7 @@ point_home = LocationGlobalRelative(lat_h, long_h, 20)
 vehicle.simple_goto(point_home, groundspeed=10)
 
 # приостанавливаем программу и смотрим изменения на карте
-time.sleep(45)
+time.sleep(30)
 
 print("Посадка дрона")
 vehicle.mode = VehicleMode("RTL")
