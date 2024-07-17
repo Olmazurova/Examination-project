@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-''' exam.py программирует дрон для полёта по траектории пятиконечной звезды '''
+''' Программируем дрон для полёта по траектории пятиконечной звезды '''
 
 # Библиотека __future__ нужна для обратной совместимости между python2 и python3
 from __future__ import print_function
@@ -34,7 +34,7 @@ if not connection_string:
 
 
 # Подключение к дрону
-print('Connecting to vehicle on: %s' % connection_string)
+print('Подключение к дрону: %s' % connection_string)
 vehicle = connect(connection_string, wait_ready=True)
 
 
@@ -43,79 +43,71 @@ def arm_and_takeoff(aTargetAltitude):
     Запускает моторы дрона и поднимает его на высоту равную aTargetAltitude.
     """
 
-    print("Basic pre-arm checks")
-    # Don't try to arm until autopilot is ready
+    print("Основные проверки перед запуском")
+    # Проверка готовности автопилота перед запуском
     while not vehicle.is_armable:
-        print(" Waiting for vehicle to initialise...")
+        print(" Ожидание инициализации дрона...")
         time.sleep(1)
 
-    print("Arming motors")
-    # Copter should arm in GUIDED mode
+    print("Включение двигателей")
+    # Перевод дрона в режим "GUIDED", запуск двигателей
     vehicle.mode = VehicleMode("GUIDED")
     vehicle.armed = True
 
-    # Confirm vehicle armed before attempting to take off
+    # Проверка запуска двигателей перед взлётом
     while not vehicle.armed:
-        print(" Waiting for arming...")
+        print(" Ожидание запуска...")
         time.sleep(1)
 
-    print("Taking off!")
-    vehicle.simple_takeoff(aTargetAltitude)  # Take off to target altitude
+    print("Взлёт!")
+    vehicle.simple_takeoff(aTargetAltitude)  # Взлёт на заданную высоту
 
-    # Wait until the vehicle reaches a safe height before processing the goto
-    #  (otherwise the command after Vehicle.simple_takeoff will execute
-    #   immediately).
+    # Ожидание подъёма дрона на безопасную высоту
+    # (иначе полёт будет выполнен немедленно).
     while True:
-        print(" Altitude: ", vehicle.location.global_relative_frame.alt)
-        # Break and return from function just below target altitude.
+        print(" Высота: ", vehicle.location.global_relative_frame.alt)
+        # Прерывание ожидания и возвращение к основной функции, когда высота набрана на 95%.
         if vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.95:
-            print("Reached target altitude")
+            print("Достигнута заданная высота")
             break
         time.sleep(1)
 
 
 # Запуск дрона и набор высоты
-arm_and_takeoff(10)
+arm_and_takeoff(20)
 
-print("Set default/target airspeed to 10")
+print("Устанавливаем по умолчанию скорость полёта 10")
 vehicle.airspeed = 10
 
 # Координаты точки взлёта и посадки
-lat_h = 55.7514207
-long_h = 37.6265806
+lat_h = 55.7502372
+long_h = 37.6281953
 
-# Координат широты и долготы каждой точки
-latitude_changes = (0.001, 0.002, -0.002, 0.001, -0.002, -0.002, 0.001, -0.002, 0.002, 0.001)
-longitude_changes = (-0.002, 0, -0.001, -0.002, 0.001, -0.002, 0.002, 0.001, 0, 0.002)
-
-# Список высот полёта до каждой точки
-altitudes = (15, 20, 15, 20, 15, 20)
-
-# Список названий точек
-points = ['первой', 'второй', 'третьей', 'четвёртой', 'пятой', 'первой']
-
-# угол поворота дрона начинаем с правого горизонтального луча
-angle = math.pi / 2
-radius = 0.002
+# угол поворота дрона
+angle = math.pi / 2  # угол 90 градусов
+radius = 0.002 # радиус для широты
+coefficient = 111.11 / (111.3 * math.cos(lat_h)) # коэффициент корректировки радиуса для долготы
 
 # Дрон облетает месность по траектории звезды
-# Через цикл меняем координаты и высоту для каждой точки
-for i in range(10):
-    if i % 2 == 0:
-        print(f"Полёт дрона к points[i] точке полёта в течение 45 секунд на высоте altitudes[i] м.")
-        vehicle.simple_goto(LocationGlobalRelative(lat_h + round(radius * 0.38 * math.cos(angle), 6),
-                                                   long_h - round(radius * 0.38 * math.sin(angle), 6), 15))
+# Через цикл вычисляем координаты для каждой точки
+for i in range(11):
+    if i % 2 != 0:
+        x = round(long_h - radius * coefficient * 0.4 * math.cos(angle), 6)
+        y = round(lat_h + radius * 0.4 * math.sin(angle), 6)
+        print(f"Полёт дрона к точке с координатами х: {x}, у: {y} на высоте 25 м.")
+        vehicle.simple_goto(LocationGlobalRelative(y, x, 25))
     else:
-        print(f"Полёт дрона к points[i] точке полёта в течение 45 секунд на высоте altitudes[i] м.")
-        vehicle.simple_goto(LocationGlobalRelative(lat_h + round(radius * math.cos(angle), 6),
-                                                   long_h - round(radius * math.sin(angle), 6), 15))
-    angle -= math.pi / 5
+        y = round(lat_h + radius * math.sin(angle), 6)
+        x = round(long_h - radius * coefficient * math.cos(angle), 6)
+        print(f"Полёт дрона к точке с координатами х: {x}, у: {y} на высоте 25 м.")
+        vehicle.simple_goto(LocationGlobalRelative(y, x, 25))
+    angle += math.pi / 5 # если поставить знак минус, то дрон будет лететь против часовой стрелки
 
     # приостанавливаем программу и смотрим движение дрона на карте
     time.sleep(30)
 
 # Отправляем дрон к точке взлёта
-print("Квадрокоптер летит к точке взлёта в течение 30 секунд.")
+print("Дрон летит к точке взлёта в течение 30 секунд.")
 point_home = LocationGlobalRelative(lat_h, long_h, 20)
 vehicle.simple_goto(point_home, groundspeed=10)
 
