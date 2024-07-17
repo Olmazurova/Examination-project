@@ -9,8 +9,8 @@ import math
 # Подключаем библиотеку time
 import time
 # Из библиотеки dronekit подключаем connect для связи с дроном
-# VehicleMode для из
-# VehicleMode для из
+# Из библиотеки dronekit импортируем VehicleMode для изменения режима полёта дрона
+# Из библиотеки dronekit импортируем LocationGlobalRelative для изменения местоположения дрона
 
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 
