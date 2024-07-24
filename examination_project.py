@@ -85,7 +85,7 @@ long_h = 37.6281953 # долгота, координата х
 
 # Задаём угол поворота дрона, радиус лучей звезды, считаем коэффициент
 angle = math.pi / 2  # угол 90 градусов
-radius = 0.002 # радиус для широты
+radius = 0.0018 # радиус для широты
 coefficient = 111.11 / (111.3 * math.cos(lat_h)) # коэффициент корректировки радиуса для долготы
 
 # Задаём количество лучей звезды
@@ -104,18 +104,19 @@ for i in range(rays * 2 + 1):
         x = round(long_h - radius * coefficient * math.cos(angle), 6)
         print(f"Полёт дрона к точке с координатами х: {x}, у: {y} на высоте 25 м.")
         vehicle.simple_goto(LocationGlobalRelative(y, x, 25))
-    angle += math.pi / rays # если поставить знак минус, то дрон будет лететь против часовой стрелки
+    # если поставить знак минус, то дрон будет лететь против часовой стрелки
+    angle += math.pi / rays
 
     # Приостанавливаем программу и смотрим движение дрона на карте
-    time.sleep(30)
+    time.sleep(28)
 
 # Отправляем дрон к точке взлёта
-print("Дрон летит к точке взлёта в течение 30 секунд.")
+print("Дрон летит к точке взлёта в течение 25 секунд.")
 point_home = LocationGlobalRelative(lat_h, long_h, 20)
 vehicle.simple_goto(point_home, groundspeed=10)
 
 # Приостанавливаем программу и смотрим изменения на карте
-time.sleep(30)
+time.sleep(25)
 
 print("Посадка дрона")
 vehicle.mode = VehicleMode("RTL")
